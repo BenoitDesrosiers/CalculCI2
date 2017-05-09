@@ -19,6 +19,9 @@ namespace CalculCI
             NbrEtudiant = nbrEtudiant;
             NumeroGroupe = numeroGroupe;
             NbrPrestation = nbrPrestation;
+
+            CiSimple = CalculCI(1);
+
         }
 
         public override bool ComptePourNbrCours()

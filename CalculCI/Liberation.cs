@@ -13,6 +13,9 @@ namespace CalculCI
         public Liberation(string nom, double charge) : base(nom)
         {
             Charge = charge;
+
+            CiSimple = CalculCI(1);  // y a probablement une meilleur facon de l'initialiser que de le faire dans chaque sous-classe
+
         }
 
         public override bool ComptePourNbrCours()

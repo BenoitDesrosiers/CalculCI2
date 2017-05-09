@@ -16,10 +16,7 @@ namespace CalculCI
 
         private static IDictionary<string, Prof> Enseignants = new Dictionary<string, Prof>();
 
-        const int CIMaxSession = 55;
-        const int CIMaxAnnuel = 85;
-
-        const double AllocAut = 6.4237;
+      
 
 
         static void Main(string[] args)
@@ -30,14 +27,7 @@ namespace CalculCI
             Console.WriteLine("CI et Allocation Par Cours");
             double ci =0;
 
-            foreach(Cours c in CursusA.Values)
-            {
-                List<Allocation> test = new List<Allocation>() {c };
-
-                ci = CalculLaCI(test);
-                Console.WriteLine("{0 } résultat  CI {1}  allocation {2}", c.Nom, ci, ci/40);
-
-            }
+           
 
             // trouve les allocations non pré-allouées 
 
@@ -60,36 +50,32 @@ namespace CalculCI
 
             // calcule toutes les combinaisons gagnantes pour chacun des profs.  
 
-            foreach( Prof p in Enseignants.Values)
-            {
-                List<Allocation> combinaison ;
+            Calculateur laChose = new Calculateur(Enseignants.Values.ToList(), allocLibre);
+            laChose.Calcul();
 
-                //reset la liste pour est les cours PreAlloues
-                combinaison = new List<Allocation>(p.AllocationsPreAlloues);
-                     
-            }
+
 
             /*
             for (int i = 0; i <= 1000000; i++)
                        {
-                           List<Allocation> test = new List<Allocation>() { LiberationsA["Syndicat2"], CursusA["420-SD2-DM-2"], CursusA["420-SE2-DM"] };
+                           List<Allocation> test = new List<Allocation>() { LiberationsA["Syndicat2"], CursusA["420-SD2-2"], CursusA["420-SE2"] };
                            ci = CalculLaCI(test);
 
                        }
                        Console.WriteLine("Louis résultat {0}", ci);
 
-                        test = new List<Allocation>() { LiberationsA["Syndicat2"], CursusA["420-BD1-DM"], CursusA["420-UC1-DM"] };
+                        test = new List<Allocation>() { LiberationsA["Syndicat2"], CursusA["420-BD1"], CursusA["420-UC1"] };
                         ci = CalculLaCI(test);
 
                        Console.WriteLine("Guy résultat {0}", ci);
 
-                       test = new List<Allocation>() { LiberationsA["Coord Programme"], LiberationsA["CATI"], LiberationsA["Hololens"],  CursusA["420-CM1-DM"], CursusA["420-FT1-DM"], CursusA["420-PR3-DM"] };
+                       test = new List<Allocation>() { LiberationsA["Coord Programme"], LiberationsA["CATI"], LiberationsA["Hololens"],  CursusA["420-CM1"], CursusA["420-FT1"], CursusA["420-PR3"] };
                        ci = CalculLaCI(test);
 
                        Console.WriteLine("Stephane résultat {0}", ci);
 
 
-                       test = new List<Allocation>() { LiberationsA["Coord Départementale"],CursusA["420-DM1-DM"] };
+                       test = new List<Allocation>() { LiberationsA["Coord Départementale"],CursusA["4201"] };
                        ci = CalculLaCI(test);
 
                        Console.WriteLine("Jonathan résultat {0}", ci);
@@ -97,38 +83,25 @@ namespace CalculCI
             Console.ReadLine();
         }
 
-        private static double CalculLaCI(IList<Allocation> allocations)
-        {
-            int nbrCours = 0;
-            foreach (Allocation alloc in allocations)
-            { nbrCours += alloc.ComptePourNbrCours() ? 1 : 0; }
-
-            double ci = 0;
-            foreach (Allocation alloc in allocations)
-            {
-                ci += alloc.CalculCI(nbrCours);
-            }
-
-            return ci;
-        }
+        
 
         private static void SeedCours()
         {
-            CursusA.Add("204-CJV-DM", new Cours("204-CJV-DM", 25, 3));
-            CursusA.Add("420-BD1-DM", new Cours("420-BD1-DM", 26, 3));
-            CursusA.Add("420-CM1-DM", new Cours("420-CM1-DM", 20, 3));
-            CursusA.Add("420-CN2-DM", new Cours("420-CN2-DM", 13, 4));
-            CursusA.Add("420-DD1-DM", new Cours("420-DD1-DM", 12, 4));
-            CursusA.Add("420-DM1-DM", new Cours("420-DM1-DM", 13, 10));
-            CursusA.Add("420-FT1-DM", new Cours("420-FT1-DM", 20, 3));
-            CursusA.Add("420-PR3-DM", new Cours("420-PR3-DM", 26, 3));
-            CursusA.Add("420-PRA-DM", new Cours("420-PRA-DM", 20, 3));
-            CursusA.Add("420-REB-DM", new Cours("420-REB-DM", 13, 6));
-            CursusA.Add("420-SD2-DM-1", new Cours("420-SD2-DM-1", 16, 5, 2));
-            CursusA.Add("420-SD2-DM-2", new Cours("420-SD2-DM-2", 15, 5, 2));
-            CursusA.Add("420-SE1-DM", new Cours("420-SE1-DM", 20, 3));
-            CursusA.Add("420-SE2-DM", new Cours("420-SE2-DM", 26, 4));
-            CursusA.Add("420-UC1-DM", new Cours("420-UC1-DM", 26, 3));
+            CursusA.Add("204-CJV", new Cours("204-CJV", 25, 3));
+            CursusA.Add("420-BD1", new Cours("420-BD1", 26, 3));
+            CursusA.Add("420-CM1", new Cours("420-CM1", 20, 3));
+            CursusA.Add("420-CN2", new Cours("420-CN2", 13, 4));
+            CursusA.Add("420-DD1", new Cours("420-DD1", 12, 4));
+            CursusA.Add("420-DM1", new Cours("420-DM1", 13, 10));
+            CursusA.Add("420-FT1", new Cours("420-FT1", 20, 3));
+            CursusA.Add("420-PR3", new Cours("420-PR3", 26, 3));
+            CursusA.Add("420-PRA", new Cours("420-PRA", 20, 3));
+            CursusA.Add("420-REB", new Cours("420-REB", 13, 6));
+            CursusA.Add("420-SD2-1", new Cours("420-SD2-1", 16, 5, 2));
+            CursusA.Add("420-SD2-2", new Cours("420-SD2-2", 15, 5, 2));
+            CursusA.Add("420-SE1", new Cours("420-SE1", 20, 3));
+            CursusA.Add("420-SE2", new Cours("420-SE2", 26, 4));
+            CursusA.Add("420-UC1", new Cours("420-UC1", 26, 3));
 
         }
 
@@ -144,7 +117,7 @@ namespace CalculCI
 
         private static void SeedProf()
         {
-            List<string> lesProfs = new List<string>() { "Bernard", "Louis", "Jonathan", "Benoit", "Stéphane", "Daniel", "Nathalie" };
+            List<string> lesProfs = new List<string>() { "Guy", "Louis", "Jonathan", "Benoit", "Stéphane", "Daniel", "Nathalie" };
 
             foreach (string nomProf in lesProfs)
             {
@@ -153,10 +126,56 @@ namespace CalculCI
             }
             Enseignants["Nathalie"].TempsPlein = false;
 
-            //unProf.AjouteAllocationDesirees(Cursus[])  <<<< à ajouter plus tard, probablement que ca serait mieux d'avoir les cours non-désirés
+            // Ajoute les allocations qui sont pré-assignées (lib syndicales, ou tout cours qu'on veut forcer à qqun)
 
-            Enseignants["Bernard"].AjouteAllocation(LiberationsA["Syndicat2"]);
+            Enseignants["Guy"].AjouteAllocation(LiberationsA["Syndicat2"]);
             Enseignants["Louis"].AjouteAllocation(LiberationsA["Syndicat1"]);
+
+            // Crée la liste des cours qu'un prof VEUT/PEUT donner. 
+
+            Dictionary<string, List<string>> CoursVoulus = new Dictionary<string, List<string>>();
+            Dictionary<string, List<string>> LiberationsVoulues = new Dictionary<string, List<string>>();
+
+            CoursVoulus.Add("Benoit", new List<string>() { "204-CJV", "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
+                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1", });
+            LiberationsVoulues.Add("Benoit", new List<string>(){ "Coord Programme", "Coord Départementale", "CATI", "Syndicat1", "Syndicat2", "Hololens" });
+
+            CoursVoulus.Add("Louis", new List<string>() { "204-CJV", "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
+                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1", });
+            LiberationsVoulues.Add("Louis", new List<string>() { "Coord Programme", "Coord Départementale", "CATI", "Syndicat1", "Syndicat2", "Hololens" });
+
+            CoursVoulus.Add("Guy", new List<string>() { "204-CJV", "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
+                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1", });
+            LiberationsVoulues.Add("Guy", new List<string>() { "Coord Programme", "Coord Départementale", "CATI", "Syndicat1", "Syndicat2", "Hololens" });
+
+            CoursVoulus.Add("Jonathan", new List<string>() { "204-CJV", "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
+                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1", });
+            LiberationsVoulues.Add("Jonathan", new List<string>() { "Coord Programme", "Coord Départementale", "CATI", "Syndicat1", "Syndicat2", "Hololens" });
+
+            CoursVoulus.Add("Stéphane", new List<string>() { "204-CJV", "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
+                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1", });
+            LiberationsVoulues.Add("Stéphane", new List<string>() { "Coord Programme", "Coord Départementale", "CATI", "Syndicat1", "Syndicat2", "Hololens" });
+
+            CoursVoulus.Add("Daniel", new List<string>() { "204-CJV", "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
+                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1" });
+            LiberationsVoulues.Add("Daniel", new List<string>() { "Coord Programme", "Coord Départementale", "CATI", "Syndicat1", "Syndicat2", "Hololens" });
+
+            CoursVoulus.Add("Nathalie", new List<string>() { "204-CJV" });
+            LiberationsVoulues.Add("Nathalie", new List<string>() { });
+
+
+            foreach(string unprof in Enseignants.Keys)
+            {
+                foreach (string uneAlloc in CoursVoulus[unprof])
+                {
+                    Enseignants[unprof].AjouteAllocationDesirees(CursusA[uneAlloc]);
+                }
+                foreach (string uneAlloc in LiberationsVoulues[unprof])
+                {
+                    Enseignants[unprof].AjouteAllocationDesirees(LiberationsA[uneAlloc]);
+                }
+            }
+
 
         }
     }
