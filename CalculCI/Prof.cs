@@ -9,30 +9,44 @@ namespace CalculCI
     class Prof
     {
         public string Nom { get; }
-        public bool TempsPlein { get; set; }
+        public double CiMinimun { get; set; }
         public int NbrCoursAssignes;
 
-        public List<Allocation> AllocationActuelle { get; } = new List<Allocation>();
+        public List<Allocation> AllocationPreAlloue { get; } = new List<Allocation>();
         //public ICollection<Allocation> AllocationsForcees { get; }
         public IDictionary<string, Allocation> AllocationsDesirees { get; } = new Dictionary<string, Allocation>();
 
-        public Prof(string nom, bool tempsPlein)
+        public List<ulong> AllocationsPossibles { get; } = new List<ulong>();
+        public ulong MaskPreAlloue { get; set; } = 0;
+         
+        public Prof(string nom, double ciMin)
         {
             Nom = nom;
-            TempsPlein = tempsPlein;
+            CiMinimun = ciMin;
         }
 
-        public void AjouteAllocation(Allocation allocation)
+        public void AjoutePreAllocation(Allocation allocation)
         {
-            AllocationActuelle.Add(allocation);
+            if ( !estNouvelleAllocation(allocation) )
+            {
+                throw new IndexOutOfRangeException();
+            }
+
+            AllocationPreAlloue.Add(allocation);
+            MaskPreAlloue += allocation.BinId;
             allocation.Assigne = true;
             if(allocation.ComptePourNbrCours())
                 { NbrCoursAssignes++; }
         }
 
-        public void EnleveAllocation(Allocation allocation)
+        public void EnlevePreAllocation(Allocation allocation)
         {
-            AllocationActuelle.Remove(allocation);
+            if (estNouvelleAllocation(allocation))
+            {
+                throw new IndexOutOfRangeException();
+            }
+            AllocationPreAlloue.Remove(allocation);
+            MaskPreAlloue -= allocation.BinId;
             allocation.Assigne = false;
             if(allocation.ComptePourNbrCours())
                 { NbrCoursAssignes--; }
@@ -46,7 +60,7 @@ namespace CalculCI
         public double CiActuelle()
         {
             double ci = 0;
-            foreach(Allocation alloc in AllocationActuelle)
+            foreach(Allocation alloc in AllocationPreAlloue)
                 { ci += alloc.CalculCI(NbrCoursAssignes); }
             return ci;
         }
@@ -56,10 +70,53 @@ namespace CalculCI
             double ci = 0;
             int coursDePlus = 0;
             coursDePlus = allocAtester.ComptePourNbrCours() ? 1 : 0;
-            foreach (Allocation alloc in AllocationActuelle)
+            foreach (Allocation alloc in AllocationPreAlloue)
             { ci += alloc.CalculCI(NbrCoursAssignes+coursDePlus); }
             ci += allocAtester.CalculCI(NbrCoursAssignes + coursDePlus);
             return ci <= Constantes.CIMaxSession;
+        }
+       
+        /// </summary>
+        /// <param name="allocsDePlus">l'allocation a ajouter par dessus la pre-allouée</param>
+        /// <param name="nbrCoursDePlus">le nombre de cours de plus que la pre-allouée</param>
+        /// <returns></returns>
+        public bool PeutPrendreAllocList(List<Allocation> allocsDePlus, int nbrCoursDePlus)
+        {
+            return CiPourAllocListAdditionnel(allocsDePlus, nbrCoursDePlus) <= Constantes.CIMaxSession;
+        }
+       
+        public double CiPourAllocListAdditionnel(List< Allocation> allocsDePlus, int nbrCoursDePlus)
+        {
+            double ci = 0;
+            foreach (Allocation alloc in AllocationPreAlloue)
+                { ci += alloc.CalculCI(NbrCoursAssignes + nbrCoursDePlus); }
+
+            foreach (Allocation alloc in allocsDePlus)
+                { ci += alloc.CalculCI(NbrCoursAssignes + nbrCoursDePlus); }
+            return ci;
+        }
+
+
+        private bool estNouvelleAllocation(Allocation alloc)
+        {
+            return (MaskPreAlloue ^ alloc.BinId) != MaskPreAlloue;
+        }
+
+        public void AllocationPossibleAjouteListe(List<Allocation> allocs)
+        {
+            ulong mask = 0;
+            foreach(Allocation alloc in allocs)
+            {
+                mask += alloc.BinId;
+            }
+            AllocationsPossibles.Add(mask);
+        }
+
+        public void DumpAllocationsPossibles()
+        {
+            foreach (ulong alloc in AllocationsPossibles)
+                { Console.Write("{0}, ", alloc); }
+            Console.WriteLine();
         }
     }
 }
