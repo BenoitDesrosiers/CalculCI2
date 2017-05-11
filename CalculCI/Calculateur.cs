@@ -12,11 +12,12 @@ namespace CalculCI
     {
         static IList<Prof> Profs;
         static IList<Allocation> Allocations;
-
-        public Calculateur(IList<Prof> profs, IList<Allocation> allocations )
+        static int NbrAlloc;
+        public Calculateur(IList<Prof> profs, IList<Allocation> allocations, int nbrAlloc )
         {
             Profs = profs;
-            Allocations = allocations;
+            Allocations = allocations; // ca sert à quoi ca ??? 
+            NbrAlloc = nbrAlloc;
         }
 
         public void Calcul()
@@ -59,6 +60,10 @@ namespace CalculCI
                         {
                             prof.AllocationsPossibles.Add(maskAlloc);
                         }
+                        else
+                        {
+
+                        }
                         //Console.WriteLine("{0} {1} {2}", maskAlloc, ConvertToBinary(maskAlloc), prof.CiPourAllocListAdditionnel(allocAdditionnelle, nbrCoursAdditionnels));
                         CalculPossibilite(prof, maskAlloc, fait, allocAdditionnelle, nbrCoursAdditionnels);
                         maskAlloc -= alloc.BinId;
@@ -73,20 +78,40 @@ namespace CalculCI
 
         static void TrouveBonneCharge(int indexProf, List<Array> bonneAlloc)
         {
+            List<Array> vraieBonneAlloc = new List<Array>(); // contiendra juste les allocs qui ont tous les cours
             if(indexProf==Profs.Count)
             {
                 // on a finit, on affiche pis on sort d'ici
-                foreach(ulong[] uneBonneAlloc in bonneAlloc)
+                Console.WriteLine("en Partant {0}", bonneAlloc.Count);
+                
+
+                // Élimine les allocation dans lequel certains cours sont non-assignés
+                foreach (ulong[] uneBonneAlloc in bonneAlloc)
+                {
+                    ulong allocTotal = UlongSum(uneBonneAlloc);
+                    
+                    // Conserve uniquement les allocs ou tous les cours sont assignés.
+                    if((allocTotal != ((ulong) Math.Pow(2,NbrAlloc )-1)))
+                    {
+                        vraieBonneAlloc.Add(uneBonneAlloc);
+                    }
+                   
+                }
+                Console.WriteLine("conservée {0}", vraieBonneAlloc.Count);
+                foreach (ulong[] uneBonneAlloc in vraieBonneAlloc)
                 {
                     int profid = 0;
-                    foreach(int allocProf in uneBonneAlloc)
+                    foreach(ulong allocProf in uneBonneAlloc)
                     {
-                        Console.WriteLine("{0}  {1}", Profs[profid], allocProf);
+                        Console.WriteLine("{1} {0}", Profs[profid].Nom, ConvertToBinary(allocProf));
+                        profid++;
                     }
+                    Console.WriteLine();
+                   
 
-                    Console.WriteLine("-----------------------");
                 }
-            
+
+
                 return;
             }
             List<Array> listDeNouvelleBonneAlloc = new List<Array>();
@@ -134,14 +159,14 @@ namespace CalculCI
 
         public static string ConvertToBinary(ulong value)
         {
-            if (value == 0) return "0";
+            if (value == 0) return "".PadLeft(NbrAlloc,'0');
             System.Text.StringBuilder b = new System.Text.StringBuilder();
             while (value != 0)
             {
                 b.Insert(0, ((value & 1) == 1) ? '1' : '0');
                 value >>= 1;
             }
-            return b.ToString();
+            return b.ToString().PadLeft(NbrAlloc, '0');
         }
 
 

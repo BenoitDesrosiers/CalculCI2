@@ -34,7 +34,7 @@ namespace CalculCI
             List<Allocation> allocLibre = new List<Allocation>();
             foreach(Cours c in CursusA.Values)
             {
-                if ( c.estAssigne() )
+                if ( c.estLibre() )
                 {
                     allocLibre.Add(c);
                 }
@@ -42,7 +42,7 @@ namespace CalculCI
 
             foreach(Liberation l in LiberationsA.Values)
             {
-                if ( l.estAssigne())
+                if ( l.estLibre())
                 {
                     allocLibre.Add(l);
                 }
@@ -50,7 +50,7 @@ namespace CalculCI
 
             // calcule toutes les combinaisons gagnantes pour chacun des profs.  
 
-            Calculateur laChose = new Calculateur(Enseignants.Values.ToList(), allocLibre);
+            Calculateur laChose = new Calculateur(Enseignants.Values.ToList(), allocLibre, CursusA.Count+LiberationsA.Count);
             laChose.Calcul();
 
 
@@ -133,15 +133,19 @@ namespace CalculCI
             Enseignants["Louis"].AjoutePreAllocation(LiberationsA["Syndicat1"]);
             Enseignants["Jonathan"].AjoutePreAllocation(LiberationsA["Coord Départementale"]);
             Enseignants["Stéphane"].AjoutePreAllocation(LiberationsA["Coord Programme"]);
+            Enseignants["Stéphane"].AjoutePreAllocation(LiberationsA["Hololens"]);
 
             Enseignants["Benoit"].AjoutePreAllocation(CursusA["420-CN2"]);
+            Enseignants["Nathalie"].AjoutePreAllocation(CursusA["204-CJV"]);
 
 
-            // L'allocation pré-allouée est une charge possible (même si très minimale)
+            // L'allocation pré-allouée est une charge possible si elle est plus grande que le Ci Min.
             foreach (string nomProf in lesProfs)
             {
-                Enseignants[nomProf].AllocationPossibleAjouteListe(Enseignants[nomProf].AllocationPreAlloue);
-
+                if (Enseignants[nomProf].CiActuelle() >= Enseignants[nomProf].CiMinimun)
+                {
+                    Enseignants[nomProf].AllocationPossibleAjouteListe(Enseignants[nomProf].AllocationPreAlloue);
+                }
             }
            
 
@@ -150,25 +154,22 @@ namespace CalculCI
             Dictionary<string, List<string>> CoursVoulus = new Dictionary<string, List<string>>();
             Dictionary<string, List<string>> LiberationsVoulues = new Dictionary<string, List<string>>();
 
-            CoursVoulus.Add("Benoit", new List<string>() {  "420-BD1", "420-CM1", "420-DD1", "420-DM1",
-                "420-FT1", "420-PR3", "420-PRA", });
+            CoursVoulus.Add("Benoit", new List<string>() {  "420-BD1", "420-CM1", "420-DD1", "420-DM1", "420-FT1", "420-PR3", "420-PRA", });
             LiberationsVoulues.Add("Benoit", new List<string>(){ });
 
             CoursVoulus.Add("Louis", new List<string>() { "420-DD1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2" });
-            LiberationsVoulues.Add("Louis", new List<string>() {  "CATI", "Hololens" });
+            LiberationsVoulues.Add("Louis", new List<string>() {  "CATI",});
 
             CoursVoulus.Add("Guy", new List<string>() { "420-BD1", "420-CM1", "420-DD1", "420-FT1", "420-PR3", "420-PRA", "420-UC1", });
-            LiberationsVoulues.Add("Guy", new List<string>() {  "CATI", "Hololens" });
+            LiberationsVoulues.Add("Guy", new List<string>() {  "CATI",  });
 
             CoursVoulus.Add("Jonathan", new List<string>() { "420-CM1", "420-DD1", "420-DM1","420-FT1", "420-PR3", "420-PRA", "420-SD2-1", "420-SD2-2", });
-            LiberationsVoulues.Add("Jonathan", new List<string>() { "CATI", "Hololens" });
+            LiberationsVoulues.Add("Jonathan", new List<string>() { "CATI", });
 
-            CoursVoulus.Add("Stéphane", new List<string>() {  "420-BD1", "420-CM1", "420-CN2", "420-DD1", "420-DM1",
-                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1", });
+            CoursVoulus.Add("Stéphane", new List<string>() {  "420-BD1", "420-CM1", "420-DD1", "420-DM1", "420-FT1", "420-PR3", "420-PRA", "420-REB", });
             LiberationsVoulues.Add("Stéphane", new List<string>() {  "CATI",  "Hololens" });
 
-            CoursVoulus.Add("Daniel", new List<string>() { "204-CJV",  "420-CM1",  "420-DD1", 
-                "420-FT1", "420-PR3", "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2", "420-UC1" });
+            CoursVoulus.Add("Daniel", new List<string>() {   "420-DD1",  "420-PRA", "420-REB","420-SD2-1", "420-SD2-2", "420-SE1", "420-SE2"});
             LiberationsVoulues.Add("Daniel", new List<string>() { });
 
             CoursVoulus.Add("Nathalie", new List<string>() { "204-CJV" });
