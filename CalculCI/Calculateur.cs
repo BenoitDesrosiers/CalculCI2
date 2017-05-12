@@ -16,7 +16,7 @@ namespace CalculCI
         public Calculateur(IList<Prof> profs, IList<Allocation> allocations, int nbrAlloc )
         {
             Profs = profs;
-            Allocations = allocations; // ca sert à quoi ca ??? 
+            Allocations = allocations; 
             NbrAlloc = nbrAlloc;
         }
 
@@ -40,6 +40,14 @@ namespace CalculCI
         }
 
 
+        /// <summary>
+        /// calcul toutes les possibilités d'assigné une charge à un prof en sachant ses allocations voulus
+        /// </summary>
+        /// <param name="prof">Le prof à qui assigner la charge</param>
+        /// <param name="maskAlloc">Son assignation jusqu'à maintenant</param>
+        /// <param name="fait">Les allocations qui ont déjà été faites</param>
+        /// <param name="allocAdditionnelle">L'allocation qui est assignée à date ne faissant pas partie des pré-alloués</param>
+        /// <param name="nbrCoursAdditionnels">le nombre de cours (pas les libérations) dans l'alloc additionnel. Conservé uniquement pour accéler les calculs</param>
         static void CalculPossibilite(Prof prof, ulong maskAlloc, ulong fait, List<Allocation> allocAdditionnelle, int nbrCoursAdditionnels)
         {
             foreach(Allocation alloc in prof.AllocationsDesirees.Values)
@@ -55,15 +63,12 @@ namespace CalculCI
                     {
                         maskAlloc += alloc.BinId;
 
-                        // c'est une bonne alloc, mais ca vaut pas la peine de l'ajouter si elle est pas assez grande
+                        // c'est une bonne alloc, mais doit être ajouté seulement si elle est assez grande (­>= ci minimum du prof)
                         if (prof.CiPourAllocListAdditionnel(allocAdditionnelle, nbrCoursAdditionnels) >= prof.CiMinimun)
                         {
                             prof.AllocationsPossibles.Add(maskAlloc);
                         }
-                        else
-                        {
-
-                        }
+                      
                         //Console.WriteLine("{0} {1} {2}", maskAlloc, ConvertToBinary(maskAlloc), prof.CiPourAllocListAdditionnel(allocAdditionnelle, nbrCoursAdditionnels));
                         CalculPossibilite(prof, maskAlloc, fait, allocAdditionnelle, nbrCoursAdditionnels);
                         maskAlloc -= alloc.BinId;
@@ -76,73 +81,129 @@ namespace CalculCI
             }
         }
 
-        static void TrouveBonneCharge(int indexProf, List<Array> bonneAlloc)
+        static List<Array> TrouveBonneCharge(int indexProf, List<Array> bonneAlloc)
         {
             List<Array> vraieBonneAlloc = new List<Array>(); // contiendra juste les allocs qui ont tous les cours
-            if(indexProf==Profs.Count)
+            if (indexProf == Profs.Count)
             {
-                // on a finit, on affiche pis on sort d'ici
+                // on a finit
+                // on trouve les vraies bonne combinaisons (tous les cours assignée, et charge qui balance) 
+                // et on sort d'ici
                 Console.WriteLine("en Partant {0}", bonneAlloc.Count);
-                
 
-                // Élimine les allocation dans lequel certains cours sont non-assignés
+                // Conserve uniquement les allocs ou tous les cours sont assignés.
                 foreach (ulong[] uneBonneAlloc in bonneAlloc)
                 {
                     ulong allocTotal = UlongSum(uneBonneAlloc);
-                    
-                    // Conserve uniquement les allocs ou tous les cours sont assignés.
-                    if((allocTotal != ((ulong) Math.Pow(2,NbrAlloc )-1)))
+
+                    if ((allocTotal == ((ulong)Math.Pow(2, NbrAlloc) - 1)))
                     {
                         vraieBonneAlloc.Add(uneBonneAlloc);
                     }
-                   
                 }
                 Console.WriteLine("conservée {0}", vraieBonneAlloc.Count);
+
+
+                for (int i = 0; i < vraieBonneAlloc.Count - 1; i++)
+                {
+                    for (int j = i + 1; j < vraieBonneAlloc.Count; j++)
+                    {
+                        bool diff = false;
+
+                        for (int k = 0; k < Profs.Count; k++)
+                        {
+                            ulong[] x = (ulong[])vraieBonneAlloc[i];
+                            ulong[] y = (ulong[])vraieBonneAlloc[j];
+                            if (x[k] != y[k])
+                            { diff = true; }
+                        }
+
+                        if (!diff)
+                        {
+                            Console.WriteLine("{0} {1} {2} {3}", i, j, UlongSum((ulong[])vraieBonneAlloc[i]), UlongSum((ulong[])vraieBonneAlloc[j]));
+                        }
+                    }
+                }
+
                 foreach (ulong[] uneBonneAlloc in vraieBonneAlloc)
                 {
                     int profid = 0;
-                    foreach(ulong allocProf in uneBonneAlloc)
+                    ulong allocTotal = UlongSum(uneBonneAlloc);
+                    Console.WriteLine("{0}", ConvertToBinary(allocTotal));
+
+                    foreach (ulong allocProf in uneBonneAlloc)
                     {
                         Console.WriteLine("{1} {0}", Profs[profid].Nom, ConvertToBinary(allocProf));
+                        foreach (Allocation alloc in ConvertiUlongEnCours(allocProf))
+                        {
+                            Console.WriteLine("{0}", alloc.Nom);
+                        }
                         profid++;
+
                     }
                     Console.WriteLine();
-                   
-
                 }
+                Console.WriteLine("conservée {0}", vraieBonneAlloc.Count);
 
-
-                return;
             }
-            List<Array> listDeNouvelleBonneAlloc = new List<Array>();
 
-            // passe à travers toutes les allocations possibles pour ce profs
-            foreach (ulong allocProf in Profs[indexProf].AllocationsPossibles)
+            else
             {
-                //check si l'alloc du prof est en conflit avec toutes les allocs trouvées à date
-                foreach (ulong[] uneBonneAlloc in bonneAlloc)
+                List<Array> listDeNouvelleBonneAlloc = new List<Array>();
+
+                // passe à travers toutes les allocations possibles pour ce profs
+                foreach (ulong allocProf in Profs[indexProf].AllocationsPossibles)
                 {
-                    ulong allocTotal = UlongSum(uneBonneAlloc);
-                    if ((allocTotal & allocProf) == 0)
+                    //check si l'alloc du prof est en conflit avec toutes les allocs trouvées à date
+                    foreach (ulong[] uneBonneAlloc in bonneAlloc)
                     {
-                        // c'est une bonne alloc (pas en conflit), on l'ajoute 
-                        
-                        ulong[] uneNouvelleBonneAlloc = new ulong[Profs.Count];
-                        uneBonneAlloc.CopyTo(uneNouvelleBonneAlloc, 0);
-                        uneNouvelleBonneAlloc[indexProf] = allocProf;
-                        listDeNouvelleBonneAlloc.Add(uneNouvelleBonneAlloc);
+                        ulong allocTotal = UlongSum(uneBonneAlloc);
+                        if ((allocTotal & allocProf) == 0)
+                        {
+                            // c'est une bonne alloc (pas en conflit), on l'ajoute 
+
+                            ulong[] uneNouvelleBonneAlloc = new ulong[Profs.Count];
+                            uneBonneAlloc.CopyTo(uneNouvelleBonneAlloc, 0);
+                            uneNouvelleBonneAlloc[indexProf] = allocProf;
+                            listDeNouvelleBonneAlloc.Add(uneNouvelleBonneAlloc);
+                        }
+
                     }
-                   
+                    Console.Write(".");
+
                 }
-                Console.Write(".");
-                    
+                Console.WriteLine("-------------- {0}", indexProf);
+                // on a fini ce prof, on passe au suivant avec toutes les allocs encore bonnes
+                bonneAlloc = null; // flush la vieille liste car elle ne sert plus à rien. 
+                TrouveBonneCharge(++indexProf, listDeNouvelleBonneAlloc);
             }
-            Console.WriteLine("-------------- {0}", indexProf);
-            // on a fini ce prof, on passe au suivant avec toutes les allocs encore bonnes
-            bonneAlloc = null; // flush la vieille liste car elle ne sert plus à rien. 
-            TrouveBonneCharge(++indexProf, listDeNouvelleBonneAlloc);
+
+            return vraieBonneAlloc;
 
         }
+
+        /// <summary>
+        /// Convertie le ulong représentant une allocation en nom de cours
+        /// </summary>
+        /// <param name="alloc"></param>
+        static List<Allocation> ConvertiUlongEnCours(ulong alloc)
+        {
+            int id = 0;
+            List<Allocation> allocList = new List<Allocation>();
+            while (alloc != 0)
+            {
+                // si c'est impair (odd), alors c'est que le dernier bit à droite est set
+                if(alloc %2 !=0)
+                {
+                    allocList.Add(Allocations.Where(a => a.BinId == Math.Pow(2, id)).First());
+                }
+                alloc >>= 1;
+                id++;
+            }
+
+            return allocList;
+        }
+
 
         // ulong.sum ca existe pas de base. 
         public static ulong UlongSum(ulong[] source)
@@ -168,6 +229,8 @@ namespace CalculCI
             }
             return b.ToString().PadLeft(NbrAlloc, '0');
         }
+
+
 
 
         //***********************************************************************
@@ -216,6 +279,11 @@ namespace CalculCI
             }
 
         }
+
+
+        
+
+
 
        /* obsolete, remplacé par prof.PeutPrendreAlloc()
        private static double CalculLaCI(IList<Allocation> allocations)
