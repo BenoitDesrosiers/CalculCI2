@@ -12,11 +12,13 @@ namespace CalculCI
         public double CiMinimun { get; set; }
         public int NbrCoursAssignes;
 
-        public List<Allocation> AllocationPreAlloue { get; } = new List<Allocation>();
-        //public ICollection<Allocation> AllocationsForcees { get; }
-        public IDictionary<string, Allocation> AllocationsDesirees { get; } = new Dictionary<string, Allocation>();
+        public List<Allocation> AllocationPreAlloueA { get; } = new List<Allocation>();
+        public List<Allocation> AllocationPreAlloueH { get; } = new List<Allocation>();
 
-        public List<ulong> AllocationsPossibles { get; } = new List<ulong>();
+        public IDictionary<string, Allocation> AllocationsDesireesA { get; } = new Dictionary<string, Allocation>();
+        public IDictionary<string, Allocation> AllocationsDesireesH { get; } = new Dictionary<string, Allocation>();
+
+        public List<ulong> AllocationsPossibles { get; set; } = new List<ulong>();
         public ulong MaskPreAlloue { get; set; } = 0;
          
         public Prof(string nom, double ciMin)
@@ -32,7 +34,7 @@ namespace CalculCI
                 throw new IndexOutOfRangeException();
             }
 
-            AllocationPreAlloue.Add(allocation);
+            AllocationPreAlloueA.Add(allocation);
             MaskPreAlloue += allocation.BinId;
             allocation.Assigne = true;
             if(allocation.ComptePourNbrCours())
@@ -45,7 +47,7 @@ namespace CalculCI
             {
                 throw new IndexOutOfRangeException();
             }
-            AllocationPreAlloue.Remove(allocation);
+            AllocationPreAlloueA.Remove(allocation);
             MaskPreAlloue -= allocation.BinId;
             allocation.Assigne = false;
             if(allocation.ComptePourNbrCours())
@@ -54,13 +56,13 @@ namespace CalculCI
 
         public void AjouteAllocationDesirees(Allocation allocation)
         {
-            AllocationsDesirees.Add(allocation.Nom, allocation);
+            AllocationsDesireesA.Add(allocation.Nom, allocation);
         }
 
         public double CiActuelle()
         {
             double ci = 0;
-            foreach(Allocation alloc in AllocationPreAlloue)
+            foreach(Allocation alloc in AllocationPreAlloueA)
                 { ci += alloc.CalculCI(NbrCoursAssignes); }
             return ci;
         }
@@ -70,7 +72,7 @@ namespace CalculCI
             double ci = 0;
             int coursDePlus = 0;
             coursDePlus = allocAtester.ComptePourNbrCours() ? 1 : 0;
-            foreach (Allocation alloc in AllocationPreAlloue)
+            foreach (Allocation alloc in AllocationPreAlloueA)
             { ci += alloc.CalculCI(NbrCoursAssignes+coursDePlus); }
             ci += allocAtester.CalculCI(NbrCoursAssignes + coursDePlus);
             return ci <= Constantes.CIMaxSession;
@@ -88,7 +90,7 @@ namespace CalculCI
         public double CiPourAllocListAdditionnel(List< Allocation> allocsDePlus, int nbrCoursDePlus)
         {
             double ci = 0;
-            foreach (Allocation alloc in AllocationPreAlloue)
+            foreach (Allocation alloc in AllocationPreAlloueA)
                 { ci += alloc.CalculCI(NbrCoursAssignes + nbrCoursDePlus); }
 
             foreach (Allocation alloc in allocsDePlus)

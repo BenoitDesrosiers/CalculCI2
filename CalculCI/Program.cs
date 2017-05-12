@@ -21,85 +21,39 @@ namespace CalculCI
 
         static void Main(string[] args)
         {
-            SeedCours();
-            SeedLiberations();
+            SeedAllocationAutomne();
+            //SeedAllocationHiver();
             SeedProf();
             Console.WriteLine("CI et Allocation Par Cours");
 
-            List<Allocation> touteLalloc = new List<Allocation>();
+            List<Allocation> touteLallocA = new List<Allocation>();
             foreach ( Cours unCours in CursusA.Values)
             {
-                touteLalloc.Add(unCours);
+                touteLallocA.Add(unCours);
             }
             foreach ( Liberation unLib in LiberationsA.Values)
             {
-                touteLalloc.Add(unLib);
+                touteLallocA.Add(unLib);
             }
             
 
 
-           
-            /*
-            // trouve les allocations non pré-allouées 
-
-            List<Allocation> allocLibre = new List<Allocation>();
-            foreach(Cours c in CursusA.Values)
-            {
-                if ( c.estLibre() )
-                {
-                    allocLibre.Add(c);
-                }
-            }
-
-            foreach(Liberation l in LiberationsA.Values)
-            {
-                if ( l.estLibre())
-                {
-                    allocLibre.Add(l);
-                }
-            }
-            */
-
             // calcule toutes les combinaisons gagnantes pour chacun des profs.  
 
-            Calculateur laChose = new Calculateur(Enseignants.Values.ToList(), touteLalloc, CursusA.Count+LiberationsA.Count);
-            laChose.Calcul();
+            // Automne
+            Calculateur laChose = new Calculateur(Enseignants.Values.ToList(), touteLallocA, CursusA.Count+LiberationsA.Count);
+            List<Array> possibleA = laChose.Calcul();
 
-
-
-            /*
-            for (int i = 0; i <= 1000000; i++)
-                       {
-                           List<Allocation> test = new List<Allocation>() { LiberationsA["Syndicat2"], CursusA["420-SD2-2"], CursusA["420-SE2"] };
-                           ci = CalculLaCI(test);
-
-                       }
-                       Console.WriteLine("Louis résultat {0}", ci);
-
-                        test = new List<Allocation>() { LiberationsA["Syndicat2"], CursusA["420-BD1"], CursusA["420-UC1"] };
-                        ci = CalculLaCI(test);
-
-                       Console.WriteLine("Guy résultat {0}", ci);
-
-                       test = new List<Allocation>() { LiberationsA["Coord Programme"], LiberationsA["CATI"], LiberationsA["Hololens"],  CursusA["420-CM1"], CursusA["420-FT1"], CursusA["420-PR3"] };
-                       ci = CalculLaCI(test);
-
-                       Console.WriteLine("Stephane résultat {0}", ci);
-
-
-                       test = new List<Allocation>() { LiberationsA["Coord Départementale"],CursusA["4201"] };
-                       ci = CalculLaCI(test);
-
-                       Console.WriteLine("Jonathan résultat {0}", ci);
-                       */
+            //Hiver
+           /*
+           laChose = new Calculateur(Enseignants.Values.ToList(), touteLallocA, CursusA.Count + LiberationsA.Count);
+            List<Array> possibleH = laChose.Calcul();
+            */
             Console.ReadLine();
         }
 
-        
-
-        private static void SeedCours()
+        private static void SeedAllocationAutomne()
         {
-
             Allocation.ResetBinId();
             CursusA.Add("204-CJV", new Cours("204-CJV", 25, 3));
             CursusA.Add("420-BD1", new Cours("420-BD1", 26, 3));
@@ -117,23 +71,17 @@ namespace CalculCI
             CursusA.Add("420-SE2", new Cours("420-SE2", 26, 4));
             CursusA.Add("420-UC1", new Cours("420-UC1", 26, 3));
 
-
-
-
-        }
-
-        private static void SeedLiberations()
-        {
             LiberationsA.Add("Coord Programme", new Liberation("Coord Programme", 0.2631));
             LiberationsA.Add("Coord Départementale", new Liberation("Coord Départementale", 0.2));
             LiberationsA.Add("CATI", new Liberation("CATI", 0.1));
             LiberationsA.Add("Syndicat1", new Liberation("Syndicat1", 0.5));
             LiberationsA.Add("Syndicat2", new Liberation("Syndicat2", 0.5));
             LiberationsA.Add("Hololens", new Liberation("Hololens", 0.1));
+        }
 
-
-
-
+        private static void SeedAllocationHiver()
+        {
+            
 
             LiberationsH.Add("Refonte", new Liberation("Refonte", 0.1)); 
         }
@@ -176,9 +124,11 @@ namespace CalculCI
             // L'allocation pré-allouée est une charge possible si elle est plus grande que le Ci Min.
             foreach (string nomProf in lesProfs)
             {
+                Enseignants[nomProf].AllocationsPossibles = new List<ulong>();
+
                 if (Enseignants[nomProf].CiActuelle() >= Enseignants[nomProf].CiMinimun)
                 {
-                    Enseignants[nomProf].AllocationPossibleAjouteListe(Enseignants[nomProf].AllocationPreAlloue);
+                    Enseignants[nomProf].AllocationPossibleAjouteListe(Enseignants[nomProf].AllocationPreAlloueA);
                 }
             }
            

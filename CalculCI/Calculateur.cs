@@ -20,7 +20,7 @@ namespace CalculCI
             NbrAlloc = nbrAlloc;
         }
 
-        public void Calcul()
+        public List<Array> Calcul()
         {
             Console.WriteLine("début des calculs");
             Console.WriteLine("Calcule toutes les possibilités par prof");
@@ -34,7 +34,7 @@ namespace CalculCI
             Console.WriteLine("Calcule toutes les combinaisons gagnantes");
 
             ulong[] solutionVide = new ulong[Profs.Count];
-            TrouveBonneCharge(0, new List<Array>() { solutionVide });
+            return TrouveBonneCharge(0, new List<Array>() { solutionVide });
 
 
         }
@@ -50,7 +50,7 @@ namespace CalculCI
         /// <param name="nbrCoursAdditionnels">le nombre de cours (pas les libérations) dans l'alloc additionnel. Conservé uniquement pour accéler les calculs</param>
         static void CalculPossibilite(Prof prof, ulong maskAlloc, ulong fait, List<Allocation> allocAdditionnelle, int nbrCoursAdditionnels)
         {
-            foreach(Allocation alloc in prof.AllocationsDesirees.Values)
+            foreach(Allocation alloc in prof.AllocationsDesireesA.Values)
             {
                 // si libre et pas encore fait
                 if (alloc.estLibre() & ((fait | alloc.BinId) != fait )) 
@@ -258,7 +258,7 @@ namespace CalculCI
                 }
                 else
                 {
-                    List<Allocation> preAlloues = profs[indexProf].AllocationPreAlloue;
+                    List<Allocation> preAlloues = profs[indexProf].AllocationPreAlloueA;
                     if(profs[indexProf].PeutPrendreAlloc(alloc1[indexLibre]) )
                     {
                         nouvelle = alloc1[indexLibre];
@@ -317,7 +317,7 @@ namespace CalculCI
             List<Allocation> libre = new List<Allocation>();
             if (ciActuelle < Constantes.CIMaxSession)
             {
-                foreach(Allocation alloc in prof.AllocationsDesirees.Values)
+                foreach(Allocation alloc in prof.AllocationsDesireesA.Values)
                 {
                     if(!alloc.estAssigne() & prof.PeutPrendreAlloc(alloc))
                     {
