@@ -94,7 +94,7 @@ namespace CalculCI
                 // Conserve uniquement les allocs ou tous les cours sont assignés.
                 foreach (ulong[] uneBonneAlloc in bonneAlloc)
                 {
-                    ulong allocTotal = UlongSum(uneBonneAlloc);
+                    ulong allocTotal = UlongOr(uneBonneAlloc);
 
                     if ((allocTotal == ((ulong)Math.Pow(2, NbrAlloc) - 1)))
                     {
@@ -120,7 +120,7 @@ namespace CalculCI
 
                         if (!diff)
                         {
-                            Console.WriteLine("{0} {1} {2} {3}", i, j, UlongSum((ulong[])vraieBonneAlloc[i]), UlongSum((ulong[])vraieBonneAlloc[j]));
+                            Console.WriteLine("{0} {1} {2} {3}", i, j, UlongOr((ulong[])vraieBonneAlloc[i]), UlongOr((ulong[])vraieBonneAlloc[j]));
                         }
                     }
                 }
@@ -128,12 +128,31 @@ namespace CalculCI
                 foreach (ulong[] uneBonneAlloc in vraieBonneAlloc)
                 {
                     int profid = 0;
-                    ulong allocTotal = UlongSum(uneBonneAlloc);
-                    Console.WriteLine("{0}", ConvertToBinary(allocTotal));
-
+                    char[] allocString = new char[Allocations.Count];
                     foreach (ulong allocProf in uneBonneAlloc)
                     {
-                        Console.WriteLine("{1} {0}", Profs[profid].Nom, ConvertToBinary(allocProf));
+                        string allocProfString = ConvertToBinary(allocProf, Profs[profid].Nom[0]);
+                        for( int i = 0; i< allocProfString.Length; i++ )
+                        {
+                            if(allocProfString[i] != '0')
+                            {
+                                allocString[i] = allocProfString[i];
+                            }
+                        }
+                        profid++;
+                    }
+
+                    foreach(char c in allocString)
+                        Console.Write($"{c}");
+
+                    Console.WriteLine();
+
+
+                    /*
+                    int profid = 0
+                    foreach (ulong allocProf in uneBonneAlloc)
+                    {
+                        ConvertToBinary(allocProf, Profs[profid].Nom[0]);
                         foreach (Allocation alloc in ConvertiUlongEnCours(allocProf))
                         {
                             Console.WriteLine("{0}", alloc.Nom);
@@ -141,7 +160,8 @@ namespace CalculCI
                         profid++;
 
                     }
-                    Console.WriteLine();
+                    */
+
                 }
                 Console.WriteLine("conservée {0}", vraieBonneAlloc.Count);
 
@@ -157,7 +177,7 @@ namespace CalculCI
                     //check si l'alloc du prof est en conflit avec toutes les allocs trouvées à date
                     foreach (ulong[] uneBonneAlloc in bonneAlloc)
                     {
-                        ulong allocTotal = UlongSum(uneBonneAlloc);
+                        ulong allocTotal = UlongOr(uneBonneAlloc);
                         if ((allocTotal & allocProf) == 0)
                         {
                             // c'est une bonne alloc (pas en conflit), on l'ajoute 
@@ -216,15 +236,32 @@ namespace CalculCI
             return total;
         }
 
+        /// <summary>
+        /// Fait un OU logique entre tous les éléments d'un tableau 
+        /// C'est comme l'addition, mais ca corrige l'erreur quand y a 
+        /// 3 fois (ou plus) la même valeur    1+1+1 = 3, ce qui est une bonne 
+        /// valeur dans le tableau, mais pas le bon résultat. 1^1^1 = 1, ce qui est la bonne 
+        /// valeur. 
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
+        public static ulong UlongOr(ulong[] source)
+        {
+            ulong total = 0;
 
+            foreach (var item in source)
+                total = total ^ item;
 
-        public static string ConvertToBinary(ulong value)
+            return total;
+        }
+
+        public static string ConvertToBinary(ulong value, char charactere = '0')
         {
             if (value == 0) return "".PadLeft(NbrAlloc,'0');
             System.Text.StringBuilder b = new System.Text.StringBuilder();
             while (value != 0)
             {
-                b.Insert(0, ((value & 1) == 1) ? '1' : '0');
+                b.Insert(0, ((value & 1) == 1) ? charactere : '0');
                 value >>= 1;
             }
             return b.ToString().PadLeft(NbrAlloc, '0');
