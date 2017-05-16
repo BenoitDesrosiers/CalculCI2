@@ -125,6 +125,18 @@ namespace CalculCI
                     }
                 }
 
+                int longueurMax = 0;
+                foreach(Allocation alloc in Allocations)
+                {
+                    if (alloc.Nom.Length > longueurMax)
+                        longueurMax = alloc.Nom.Length;
+                }
+
+                char[][] tableauNom = new char[Allocations.Count][];
+                for (int i = 0; i < Allocations.Count; i++)
+                    for (int j = 0; j < longueurMax; j++)
+                        tableauNom[i][j] = (Allocations[i].Nom.PadRight(' '))[j];
+
                 foreach (ulong[] uneBonneAlloc in vraieBonneAlloc)
                 {
                     int profid = 0;
